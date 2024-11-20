@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios"; // Import axios
-import { storage } from "../firebase"; // Import your firebase storage
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Import functions for storage
-import Swal from "sweetalert2"; // Import SweetAlert2
-import "../styles/EditResearch.css"; // Keep this line if you create EditBook.css
+import axios from "axios"; 
+import { storage } from "../firebase"; 
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; 
+import Swal from "sweetalert2"; 
+import "../styles/EditResearch.css"; 
 
 const EditBook = ({ book, onClose, onBookUpdated }) => {
     const [title, setTitle] = useState(book.title);
@@ -13,15 +13,15 @@ const EditBook = ({ book, onClose, onBookUpdated }) => {
     // Initialize state with formatted date
     const [year, setYear] = useState((book.year));
 
-    const [pdf_url, setpdfUrl] = useState(book.abstract_url); // Keep track of the current URL
+    const [pdf_url, setpdfUrl] = useState(book.abstract_url); 
     const [pdf, setPdf] = useState(null);
-    const [loading, setLoading] = useState(false); // State to show loading status
+    const [loading, setLoading] = useState(false); 
 
     const handleUpdate = async (e) => {
         e.preventDefault();
-        setLoading(true); // Start loading
+        setLoading(true); 
 
-        // Show loading dialog
+     
         Swal.fire({
             title: 'Updating...',
             html: 'Please wait while we update the book details.',
@@ -29,7 +29,7 @@ const EditBook = ({ book, onClose, onBookUpdated }) => {
             allowEscapeKey: false,
             showConfirmButton: false,
             willOpen: () => {
-                Swal.showLoading(); // Show loading spinner
+                Swal.showLoading(); 
             },
         });
 
@@ -68,14 +68,13 @@ const EditBook = ({ book, onClose, onBookUpdated }) => {
             });
             console.log("Response from server:", response.data); // Log response for debugging
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Updated!',
-                text: 'The book details have been updated successfully.',
+         
+            Swal.fire('Updated!', 'The Research details have been updated successfully.', 'success').then(() => {
+                onBookUpdated(); // Refresh the book list
+                onClose(); // Close the modal
             });
 
-            onBookUpdated(); // Refresh the book list
-            onClose(); // Close the modal
+         
 
         } catch (error) {
             console.error("Error updating book:", error);

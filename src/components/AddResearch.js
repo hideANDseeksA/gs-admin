@@ -1,147 +1,208 @@
 import React, { useState } from "react";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from "../firebase"; // Import storage from firebase.js
+import { storage } from "../firebase";
 import axios from "axios";
-import Swal from "sweetalert2"; // Import SweetAlert
-import "../styles/AddResearchs.css"; // Import your CSS file
+import Swal from "sweetalert2";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Grid,
+  IconButton,
+  Card,
+  CardContent,
+} from "@mui/material";
+import { Add, Remove } from "@mui/icons-material";
 
-const AddReseach = () => {
-  const [pdf, setPdf] = useState(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    keyword:"",
-    year: "",
-  });
+const AddResearch = () => {
+  const [entries, setEntries] = useState([
+    { title: "", keyword: "", year: "", pdf: null },
+  ]);
 
-  // Handle file input change
-  const handlePdfChange = (e) => {
-    setPdf(e.target.files[0]);
+  const handleFieldChange = (index, field, value) => {
+    const updatedEntries = [...entries];
+    updatedEntries[index][field] = value;
+    setEntries(updatedEntries);
   };
 
-  // Handle form data change
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handlePdfChange = (index, file) => {
+    const updatedEntries = [...entries];
+    updatedEntries[index].pdf = file;
+    setEntries(updatedEntries);
   };
 
-  // Handle form submit
+  const addEntry = () => {
+    setEntries([...entries, { title: "", keyword: "", year: "", pdf: null }]);
+  };
+
+  const removeEntry = (index) => {
+    const updatedEntries = entries.filter((_, i) => i !== index);
+    setEntries(updatedEntries);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!pdf) {
-      Swal.fire("Error!", "Please select a PDF to upload", "error");
+    if (entries.some((entry) => !entry.title || !entry.pdf || !entry.year)) {
+      Swal.fire("Error!", "Please fill in all fields and upload PDFs.", "error");
       return;
     }
 
-    // Display loading alert
     Swal.fire({
       title: "Uploading...",
-      text: "Please wait while the PDF is being uploaded.",
+      text: "Please wait while the PDFs are being uploaded.",
       allowOutsideClick: false,
       didOpen: () => {
-        Swal.showLoading(); // Show loading spinner
+        Swal.showLoading();
       },
     });
 
-    // Create a reference to the storage location for PDFs
-    const storageRef = ref(storage, `Abstract/${pdf.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, pdf);
+    try {
+      const uploadedEntries = await Promise.all(
+        entries.map(async (entry) => {
+          const storageRef = ref(storage, `Abstract/${entry.pdf.name}`);
+          const uploadTask = uploadBytesResumable(storageRef, entry.pdf);
 
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        // Optional: You can track upload progress here
-      },
-      (error) => {
-        console.error("Error uploading PDF: ", error);
-        Swal.fire("Error!", "Error uploading PDF.", "error");
-      },
-      async () => {
-        // Get the PDF download URL after the upload is complete
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
-        // Now send the form data with the PDF URL to your backend
-        const bookData = {
-          title: formData.title,
-          keyword:formData.keyword,
-          year: formData.year,
-          url: downloadURL, // The PDF URL from Firebase
-        };
-
-        try {
-          // Make a POST request to your backend to insert book data into PostgreSQL
-          await axios.post("https://backend-j2o4.onrender.com/api/research", bookData);
-
-          // Close the loading alert
-          Swal.close();
-
-          // Show success alert
-          Swal.fire("Success!", "Book added successfully!", "success");
-
-          // Reset form after submission
-          setFormData({
-            title: "",
-            keyword:"",
-            year: "",
+          await new Promise((resolve, reject) => {
+            uploadTask.on(
+              "state_changed",
+              null,
+              (error) => reject(error),
+              () => resolve()
+            );
           });
-          setPdf(null);
-        } catch (error) {
-          console.error("Error adding book:", error);
-          Swal.fire("Error!", "Error adding book.", "error");
-        }
-      }
-    );
+
+          const downloadURL = await getDownloadURL(storageRef);
+
+          return {
+            title: entry.title,
+            keyword: entry.keyword,
+            year: entry.year,
+            url: downloadURL,
+          };
+        })
+      );
+
+      await axios.post("http://localhost:3000/api/research/bulk", {
+        researchList: uploadedEntries,
+      });
+
+      Swal.close();
+      Swal.fire("Success!", "All research data uploaded successfully!", "success");
+      setEntries([{ title: "", keyword: "", year: "", pdf: null }]);
+    } catch (error) {
+      console.error("Error uploading research data:", error);
+      Swal.fire("Error!", "Error uploading research data.", "error");
+    }
   };
 
   return (
-    <div className="add-book-container">
-      <h2>Research Repository</h2>
+    <Box p={3}>
+      <Typography variant="h4" textAlign="center" mb={3}>
+        Research Repository
+      </Typography>
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleInputChange}
-          placeholder="Title"
-          required
-        />
-
-          <input
-          type="text"
-          name="keyword"
-          value={formData.keyword}
-          onChange={handleInputChange}
-          placeholder="keyword"
-          required
-        />
-
-        <input
-          type="number"
-          name="year"
-          value={formData.year}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value.length <= 4) {
-              handleInputChange(e); // Only allow input change if it's 4 digits or less
-            }
-          }}
-          placeholder="Year Submitted"
-          required
-          max="9999" // This ensures the user can't submit a number greater than 9999
-        />
-
-      <p>Abstract Pdf File:</p>
-        <input type="file" accept="application/pdf" onChange={handlePdfChange} required />
-        {pdf && (
-          <div className="pdf-preview">
-            <h4>Selected PDF:</h4>
-            <p>{pdf.name}</p> {/* Display the PDF file name */}
-          </div>
-        )}
-        <button type="submit">Continue</button>
+        <Grid container spacing={2}>
+          {entries.map((entry, index) => (
+            <Grid item xs={12} key={index}>
+              <Card>
+                <CardContent>
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} sm={6} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Title"
+                        value={entry.title}
+                        onChange={(e) =>
+                          handleFieldChange(index, "title", e.target.value)
+                        }
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Keyword"
+                        value={entry.keyword}
+                        onChange={(e) =>
+                          handleFieldChange(index, "keyword", e.target.value)
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Year Submitted"
+                        value={entry.year}
+                        onChange={(e) =>
+                          handleFieldChange(index, "year", e.target.value)
+                        }
+                        inputProps={{ maxLength: 4 }}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        fullWidth
+                        required
+                      >
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          hidden
+                          onChange={(e) =>
+                            handlePdfChange(index, e.target.files[0])
+                          }
+                        />
+                      </Button>
+                      {entry.pdf && (
+                        <Typography variant="body2">
+                          Selected: {entry.pdf.name}
+                        </Typography>
+                      )}
+                    </Grid>
+                    {entries.length > 1 && (
+                      <Grid item xs={12}>
+                        <IconButton onClick={() => removeEntry(index)} color="error">
+                          <Remove />
+                        </IconButton>
+                      </Grid>
+                    )}
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+          <Grid item xs={12}>
+            <Grid container justifyContent="space-between" alignItems="center">
+              <Button
+                type="submit"
+                variant="contained"
+                color="success"
+                style={{ width: "200px" }}
+              >
+                Submit All
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<Add />}
+                onClick={addEntry}
+                style={{ width: "250px" }}
+              >
+                Add Another Research
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
       </form>
-    </div>
+    </Box>
   );
 };
 
-export default AddReseach;
+export default AddResearch;

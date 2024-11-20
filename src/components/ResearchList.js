@@ -1,66 +1,80 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2"; // Import SweetAlert2
-import EditBook from "./EditResearch"; // Import EditBook component
+import Swal from "sweetalert2";
+import EditBook from "./EditResearch";
 import "../styles/ResearchList.css";
 
 const ResearchList = ({ onBookUpdated }) => {
     const [books, setBooks] = useState([]);
     const [editingBook, setEditingBook] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(""); // State for search query
+    const [searchQuery, setSearchQuery] = useState("");
 
     const fetchBooks = async () => {
         try {
-            // Show loading alert
             Swal.fire({
-                title: 'Loading...',
-                text: 'Fetching Research data, please wait.',
+                title: "Loading...",
+                text: "Fetching Research data, please wait.",
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
                 },
             });
-    
+
             const response = await axios.get("https://backend-j2o4.onrender.com/api/research");
             setBooks(response.data);
-    
-            // Close loading alert once data is fetched
+
             Swal.close();
         } catch (error) {
             console.error("Error fetching Research:", error);
-    
-            // Show error alert if fetching fails
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'There was an error fetching the Research. Please try again later.',
+                icon: "error",
+                title: "Error",
+                text: "There was an error fetching the Research. Please try again later.",
             });
         }
     };
 
     const deleteBook = async (bookId) => {
         Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
+            title: "Are you sure?",
+            text: "This action cannot be undone.",
+            icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel',
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
+                    Swal.fire({
+                        title: "Deleting...",
+                        text: "Please wait while the research is being deleted.",
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                    });
+
                     await axios.delete(`https://backend-j2o4.onrender.com/api/research/${bookId}`);
-                    fetchBooks(); // Refresh the book list
-                    Swal.fire('Deleted!', 'Your book has been deleted.', 'success');
+
+                    // Show success message before refreshing
+                    Swal.fire('Deleted!', 'Research has been deleted.', 'success').then(() => {
+                        fetchBooks(); // Refresh books list after the success message is shown
+                    });
                 } catch (error) {
-                    console.error("Error deleting book:", error);
+                    console.error("Error deleting research:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to delete the research. Please try again later.",
+                    });
                 }
             }
         });
     };
+
 
     useEffect(() => {
         fetchBooks();
@@ -72,26 +86,24 @@ const ResearchList = ({ onBookUpdated }) => {
     };
 
     const handleBookUpdated = () => {
-        fetchBooks(); // Refresh the book list
+        fetchBooks();
     };
 
-    // Filter books based on search query
     const filteredBooks = books.filter((book) =>
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.year.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
-        <div className="book-list-container">
-            <h2 className="section-title">Research Repository</h2>
+        <div className="book-list-container modern-container">
+            <h2 className="section-title modern-title">Research Repository</h2>
 
-            {/* Modern Search bar */}
             <div className="book-list-actions">
-                <div className="search-container">
+                <div className="search-container modern-search-container">
                     <i className="fa fa-search search-icon"></i>
                     <input
                         type="text"
-                        placeholder="Search....."
+                        placeholder="Search by title or year..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="search-bar modern-search-bar"
@@ -99,10 +111,10 @@ const ResearchList = ({ onBookUpdated }) => {
                 </div>
             </div>
 
-            <table className="book-list-table">
+            <table className="book-list-table modern-table">
                 <thead>
                     <tr>
-                        <th style={{ width: '40%', textAlign: 'center' }}>Research Title</th>
+                        <th>Research Title</th>
                         <th>Date Submitted</th>
                         <th>Abstract</th>
                         <th>Actions</th>
@@ -110,19 +122,22 @@ const ResearchList = ({ onBookUpdated }) => {
                 </thead>
                 <tbody>
                     {filteredBooks.map((book) => (
-                        <tr key={book.id}>
-                            <td style={{ textJustify: 'inherit' }}>{book.title}</td>
+                        <tr key={book.id} className="modern-table-row">
+                            <td className="modern-title-cell">{book.title}</td>
                             <td>{book.year}</td>
                             <td>
-                                <a href={book.abstract_url} target="_blank" rel="noopener noreferrer">
-                                    View Abstract
-                                </a>
+                                <td>
+                                    <a href={book.abstract_url} rel="noopener noreferrer" className="modern-link">
+                                        View Abstract
+                                    </a>
+                                </td>
+
                             </td>
                             <td>
-                                <button onClick={() => handleEdit(book)} className="edit-button">
+                                <button onClick={() => handleEdit(book)} className="edit-button modern-button">
                                     Edit
                                 </button>
-                                <button onClick={() => deleteBook(book.id)} className="delete-button">
+                                <button onClick={() => deleteBook(book.id)} className="delete-button modern-button">
                                     Delete
                                 </button>
                             </td>
@@ -131,7 +146,6 @@ const ResearchList = ({ onBookUpdated }) => {
                 </tbody>
             </table>
 
-            {/* Edit modal */}
             {showEditModal && (
                 <EditBook
                     book={editingBook}
