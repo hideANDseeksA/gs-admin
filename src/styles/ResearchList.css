@@ -86,3 +86,44 @@
 .modern-button:hover {
   opacity: 0.9;
 }
+/* Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  z-index: 999;
+}
+
+/* Modal */
+.edit-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  width: 80%; /* Increased width */
+  height: 80%; /* Increased height */
+  max-width: 800px; /* Maximum width for large screens */
+  max-height: 90%; /* Maximum height for large screens */
+  overflow-y: auto; /* Enable scrolling for large content */
+  overflow-x: hidden;
+  font-size: 16px; /* Slightly larger font for readability */
+}
+
+/* Optional: Larger close button inside the modal */
+.edit-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}

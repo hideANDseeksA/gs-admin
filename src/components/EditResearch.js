@@ -60,7 +60,7 @@ const EditBook = ({ book, onClose, onBookUpdated }) => {
 
         try {
             // Make the update request to the server with the correct downloadURL
-            const response = await axios.put(`https://backend-j2o4.onrender.com/api/research/${book.id}`, {
+            const response = await axios.put(`https://gs-backend-r39y.onrender.com/api/research/${book.id}`, {
                 title,
                 keyword,
                 year,

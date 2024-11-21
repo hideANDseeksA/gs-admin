@@ -100,7 +100,7 @@ const StudentDashboard = () => {
         },
       });
 
-      const response = await axios.get("https://backend-j2o4.onrender.com/api/students");
+      const response = await axios.get("https://gs-backend-r39y.onrender.com/api/students");
       setStudents(response.data);
       Swal.close();
     } catch (error) {
@@ -136,7 +136,7 @@ const StudentDashboard = () => {
       });
   
       try {
-        await axios.delete(`https://backend-j2o4.onrender.com/api/students/${email}`);
+        await axios.delete(`https://gs-backend-r39y.onrender.com/api/students/${email}`);
 
         Swal.fire("Success!", `Successfully deleted ${email}.`, "success").then(() => {
           fetchStudents();
@@ -194,7 +194,7 @@ const StudentDashboard = () => {
     });
 
     try {
-      await axios.post("https://backend-j2o4.onrender.com/api/insert_students", { students: newStudents });
+      await axios.post("https://gs-backend-r39y.onrender.com/api/insert_students", { students: newStudents });
  
       Swal.fire('Success', 'New students inserted successfully!', 'success').then(() => {
         fetchStudents();

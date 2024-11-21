@@ -21,7 +21,7 @@ const ResearchList = ({ onBookUpdated }) => {
                 },
             });
 
-            const response = await axios.get("https://backend-j2o4.onrender.com/api/research");
+            const response = await axios.get("https://gs-backend-r39y.onrender.com/api/research");
             setBooks(response.data);
 
             Swal.close();
@@ -57,7 +57,7 @@ const ResearchList = ({ onBookUpdated }) => {
                         },
                     });
 
-                    await axios.delete(`https://backend-j2o4.onrender.com/api/research/${bookId}`);
+                    await axios.delete(`https://gs-backend-r39y.onrender.com/api/research/${bookId}`);
 
                     // Show success message before refreshing
                     Swal.fire('Deleted!', 'Research has been deleted.', 'success').then(() => {
@@ -74,7 +74,6 @@ const ResearchList = ({ onBookUpdated }) => {
             }
         });
     };
-
 
     useEffect(() => {
         fetchBooks();
@@ -123,15 +122,23 @@ const ResearchList = ({ onBookUpdated }) => {
                 <tbody>
                     {filteredBooks.map((book) => (
                         <tr key={book.id} className="modern-table-row">
-                            <td className="modern-title-cell">{book.title}</td>
+                            <td
+                                className="modern-title-cell"
+                                title={book.title}
+                                style={{ textAlign: "left", maxWidth: "250px", wordWrap: "break-word" }}
+                            >
+                                {book.title}
+                            </td>
                             <td>{book.year}</td>
                             <td>
-                                <td>
-                                    <a href={book.abstract_url} rel="noopener noreferrer" className="modern-link">
-                                        View Abstract
-                                    </a>
-                                </td>
-
+                                <a
+                                    href={book.abstract_url}
+                                    rel="noopener noreferrer"
+                                    className="modern-link"
+                                    target="_blank"
+                                >
+                                    View Abstract
+                                </a>
                             </td>
                             <td>
                                 <button onClick={() => handleEdit(book)} className="edit-button modern-button">
@@ -147,12 +154,17 @@ const ResearchList = ({ onBookUpdated }) => {
             </table>
 
             {showEditModal && (
-                <EditBook
-                    book={editingBook}
-                    onClose={() => setShowEditModal(false)}
-                    onBookUpdated={handleBookUpdated}
-                />
+                <>
+                    {/* Overlay for transparency */}
+                    <div className="modal-overlay" onClick={() => setShowEditModal(false)}></div>
+                    <EditBook
+                        book={editingBook}
+                        onClose={() => setShowEditModal(false)}
+                        onBookUpdated={handleBookUpdated}
+                    />
+                </>
             )}
+
         </div>
     );
 };

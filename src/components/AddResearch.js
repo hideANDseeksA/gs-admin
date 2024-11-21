@@ -84,7 +84,7 @@ const AddResearch = () => {
         })
       );
 
-      await axios.post("http://localhost:3000/api/research/bulk", {
+      await axios.post("https://gs-backend-r39y.onrender.com/api/research/bulk", {
         researchList: uploadedEntries,
       });
 

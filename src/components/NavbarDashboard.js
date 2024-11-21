@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, Menu, MenuItem, IconButton } from '@mui/material';
 import { Link, BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ArrowDropDown, Menu as MenuIcon } from '@mui/icons-material';
 import Swal from 'sweetalert2';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import MenuIcon from '@mui/icons-material/Menu'; // Importing an icon for the menu button
 
 // Import your components
 import Home from './ResearchList';
@@ -16,16 +16,17 @@ const NavbarDashboard = () => {
   const [anchorEl, setAnchorEl] = useState(null); // For the dropdown menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // For the mobile menu toggle
 
-  const handleMenuClick = (event) => {
-    setAnchorEl(event.currentTarget); // Open the menu
-  };
-
-  const handleMobileMenuToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen); // Toggle mobile menu
+  const handleMenuToggle = (event) => {
+    // Toggle the dropdown menu on click
+    setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null); // Close the menu
+  };
+
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen); // Toggle mobile menu
   };
 
   const handleSignOut = () => {
@@ -70,27 +71,31 @@ const NavbarDashboard = () => {
             </IconButton>
 
             {/* Dropdown for Research Section */}
-            <Button color="inherit" sx={{ display: { xs: 'none', md: 'block' } }} onClick={handleMenuClick}>
-              Research
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              sx={{
-                display: { xs: 'none', md: 'block' }, // Show dropdown only on desktop
-              }}
-            >
-              <MenuItem component={Link} to="/" onClick={handleMenuClose}>
-                Research List
-              </MenuItem>
-              <MenuItem component={Link} to="/add-research" onClick={handleMenuClose}>
-                Add Research
-              </MenuItem>
-              <MenuItem component={Link} to="/research-graph" onClick={handleMenuClose}>
-              Research Over years
-              </MenuItem>
-            </Menu>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', position: 'relative' }}>
+              <Button
+                color="inherit"
+                endIcon={<ArrowDropDown />}
+                onClick={handleMenuToggle}
+                sx={{ textTransform: 'none' }}
+              >
+                RESEARCH
+              </Button>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem component={Link} to="/" onClick={handleMenuClose}>
+                  Research List
+                </MenuItem>
+                <MenuItem component={Link} to="/add-research" onClick={handleMenuClose}>
+                  Add Research
+                </MenuItem>
+                <MenuItem component={Link} to="/research-graph" onClick={handleMenuClose}>
+                  Research Over years
+                </MenuItem>
+              </Menu>
+            </Box>
 
             {/* Button for Students */}
             <Button color="inherit" component={Link} to="/add-students" sx={{ marginRight: 2 }}>
