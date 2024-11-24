@@ -33,7 +33,7 @@ const ResearchGraph = () => {
       });
 
       try {
-        const response = await fetch('https://backend-j2o4.onrender.com/api/Research-graph');
+        const response = await fetch('https://gs-backend-r39y.onrender.com/api/Research-graph');
         
         if (!response.ok) {
           throw new Error('Network response was not ok');
